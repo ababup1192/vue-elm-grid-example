@@ -32,6 +32,16 @@ switchOrder order =
             Desc
 
 
+order2string : Order -> String
+order2string order =
+    case order of
+        Desc ->
+            "dsc"
+
+        Asc ->
+            "asc"
+
+
 type alias ItemOrder =
     Maybe ( ColumnKey, Order )
 
@@ -126,12 +136,7 @@ view { gridData, searchQuery, itemOrder } =
                 Maybe.map
                     (\( key, order ) ->
                         if columnKey == key then
-                            case order of
-                                Asc ->
-                                    "arrow asc"
-
-                                Desc ->
-                                    "arrow dsc"
+                            "arrow " ++ order2string order
                         else
                             ""
                     )
