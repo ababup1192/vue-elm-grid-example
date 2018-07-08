@@ -5,7 +5,6 @@ import Html.Attributes exposing (class, src)
 import Html.Events exposing (onClick, onInput)
 
 
-
 ---- MODEL ----
 
 
@@ -165,7 +164,6 @@ view { gridData, searchQuery, itemOrder } =
                     (\( key, _ ) ->
                         if columnKey == key then
                             "active"
-
                         else
                             ""
                     )
@@ -177,37 +175,36 @@ view { gridData, searchQuery, itemOrder } =
                     (\( key, order ) ->
                         if columnKey == key then
                             "arrow " ++ order2string order
-
                         else
                             ""
                     )
                     itemOrder
     in
-    div []
-        [ form []
-            [ text "Search"
-            , input [ onInput InputSearchQuery ] []
-            ]
-        , table []
-            [ thead []
-                [ tr []
-                    (columns
-                        |> List.map
-                            (\column ->
-                                th
-                                    [ class <| activeClass column.key
-                                    , onClick <| SwitchOrder column.key
-                                    ]
-                                    [ text column.header
-                                    , span [ class <| arrowClass column.key ] []
-                                    ]
-                            )
-                    )
+        div []
+            [ form []
+                [ text "Search"
+                , input [ onInput InputSearchQuery ] []
                 ]
-            , tbody []
-                gridData2trList
+            , table []
+                [ thead []
+                    [ tr []
+                        (columns
+                            |> List.map
+                                (\column ->
+                                    th
+                                        [ class <| activeClass column.key
+                                        , onClick <| SwitchOrder column.key
+                                        ]
+                                        [ text column.header
+                                        , span [ class <| arrowClass column.key ] []
+                                        ]
+                                )
+                        )
+                    ]
+                , tbody []
+                    gridData2trList
+                ]
             ]
-        ]
 
 
 orderProduct : Order -> Basics.Order -> Basics.Order
