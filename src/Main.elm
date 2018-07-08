@@ -50,7 +50,7 @@ switchOrder order =
 type alias Model =
     { searchQuery : String
     , gridData : List Data
-    , active : Maybe Active
+    , activeMaybe : Maybe Active
     , nameOrder : Order
     , powerOrder : Order
     }
@@ -65,7 +65,7 @@ init =
             , Data "Jackie Chan" <| Integer 7000
             , Data "Jet Li" <| Integer 8000
             ]
-      , active = Nothing
+      , activeMaybe = Nothing
       , nameOrder = Asc
       , powerOrder = Asc
       }
@@ -91,10 +91,10 @@ update msg ({ nameOrder, powerOrder } as model) =
         SwitchOrder act ->
             case act of
                 Name ->
-                    { model | nameOrder = switchOrder nameOrder, active = Just act } ! []
+                    { model | nameOrder = switchOrder nameOrder, activeMaybe = Just act } ! []
 
                 Power ->
-                    { model | powerOrder = switchOrder powerOrder, active = Just act } ! []
+                    { model | powerOrder = switchOrder powerOrder, activeMaybe = Just act } ! []
 
 
 
@@ -102,94 +102,10 @@ update msg ({ nameOrder, powerOrder } as model) =
 
 
 view : Model -> Html Msg
-view { gridData, active, nameOrder, powerOrder, searchQuery } =
+view { gridData, activeMaybe, nameOrder, powerOrder, searchQuery } =
     let
         lwQuery =
             String.toLower searchQuery
-
-        flippedComparison a b =
-            case compare a b of
-                LT ->
-                    GT
-
-                EQ ->
-                    EQ
-
-                GT ->
-                    LT
-
-        sortList =
-            case active of
-                Just act ->
-                    case act of
-                        Name ->
-                            case nameOrder of
-                                Desc ->
-                                    List.sortWith
-                                        (\a b ->
-                                            case compare a.name b.name of
-                                                LT ->
-                                                    GT
-
-                                                EQ ->
-                                                    EQ
-
-                                                GT ->
-                                                    LT
-                                        )
-                                        gridData
-
-                                Asc ->
-                                    List.sortBy .name gridData
-
-                        Power ->
-                            case powerOrder of
-                                Desc ->
-                                    List.sortWith
-                                        (\a b ->
-                                            case ( a.power, b.power ) of
-                                                ( Infinity, Integer _ ) ->
-                                                    LT
-
-                                                ( Integer _, Infinity ) ->
-                                                    GT
-
-                                                ( Integer aa, Integer bb ) ->
-                                                    flippedComparison aa bb
-
-                                                ( _, _ ) ->
-                                                    EQ
-                                        )
-                                        gridData
-
-                                Asc ->
-                                    List.sortWith
-                                        (\a b ->
-                                            case ( a.power, b.power ) of
-                                                ( Infinity, Integer _ ) ->
-                                                    GT
-
-                                                ( Integer _, Infinity ) ->
-                                                    LT
-
-                                                ( Integer aa, Integer bb ) ->
-                                                    compare aa bb
-
-                                                ( _, _ ) ->
-                                                    EQ
-                                        )
-                                        gridData
-
-                Nothing ->
-                    gridData
-
-        filterList sortedList =
-            List.filter
-                (\{ name, power } ->
-                    String.contains lwQuery (String.toLower name)
-                        || String.contains lwQuery (String.toLower <| number2string power)
-                )
-                sortedList
 
         data2tr { name, power } =
             tr []
@@ -198,10 +114,10 @@ view { gridData, active, nameOrder, powerOrder, searchQuery } =
                 ]
 
         gridData2trList =
-            List.map data2tr (sortList |> filterList)
+            List.map data2tr (gridData |> sortList activeMaybe nameOrder powerOrder |> filterList lwQuery)
 
         activeClass act =
-            case active of
+            case activeMaybe of
                 Nothing ->
                     ""
 
@@ -241,6 +157,96 @@ view { gridData, active, nameOrder, powerOrder, searchQuery } =
                     gridData2trList
                 ]
             ]
+
+
+flippedComparison : comparable -> comparable -> Basics.Order
+flippedComparison a b =
+    case compare a b of
+        LT ->
+            GT
+
+        EQ ->
+            EQ
+
+        GT ->
+            LT
+
+
+filterList : String -> List Data -> List Data
+filterList lwQuery sortedList =
+    List.filter
+        (\{ name, power } ->
+            String.contains lwQuery (String.toLower name)
+                || String.contains lwQuery (String.toLower <| number2string power)
+        )
+        sortedList
+
+
+sortList : Maybe Active -> Order -> Order -> List Data -> List Data
+sortList activeMaybe nameOrder powerOrder gridData =
+    case activeMaybe of
+        Just act ->
+            case act of
+                Name ->
+                    case nameOrder of
+                        Desc ->
+                            List.sortWith
+                                (\a b ->
+                                    case compare a.name b.name of
+                                        LT ->
+                                            GT
+
+                                        EQ ->
+                                            EQ
+
+                                        GT ->
+                                            LT
+                                )
+                                gridData
+
+                        Asc ->
+                            List.sortBy .name gridData
+
+                Power ->
+                    case powerOrder of
+                        Desc ->
+                            List.sortWith
+                                (\a b ->
+                                    case ( a.power, b.power ) of
+                                        ( Infinity, Integer _ ) ->
+                                            LT
+
+                                        ( Integer _, Infinity ) ->
+                                            GT
+
+                                        ( Integer aa, Integer bb ) ->
+                                            flippedComparison aa bb
+
+                                        ( _, _ ) ->
+                                            EQ
+                                )
+                                gridData
+
+                        Asc ->
+                            List.sortWith
+                                (\a b ->
+                                    case ( a.power, b.power ) of
+                                        ( Infinity, Integer _ ) ->
+                                            GT
+
+                                        ( Integer _, Infinity ) ->
+                                            LT
+
+                                        ( Integer aa, Integer bb ) ->
+                                            compare aa bb
+
+                                        ( _, _ ) ->
+                                            EQ
+                                )
+                                gridData
+
+        Nothing ->
+            gridData
 
 
 
