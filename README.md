@@ -1,4 +1,6 @@
-# Elm Develop Environment
+# Vue to Elm Grid Example
+
+clone of [vue grid layout example](https://vuejs.org/v2/examples/grid-component.html)
 
 [![CircleCI](https://circleci.com/gh/ababup1192/elm-dev-env.svg?style=svg)](https://circleci.com/gh/ababup1192/elm-dev-env)
 ## Install
