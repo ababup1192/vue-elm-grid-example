@@ -111,15 +111,15 @@ view { gridData, activeMaybe, nameOrder, powerOrder, searchQuery } =
             List.map data2tr (gridData |> sortList activeMaybe nameOrder powerOrder |> filterList lwQuery)
 
         activeClass active =
-            case activeMaybe of
-                Nothing ->
-                    ""
-
-                Just act ->
-                    if active == act then
-                        "active"
-                    else
-                        ""
+            Maybe.withDefault "" <|
+                Maybe.map
+                    (\act ->
+                        if active == act then
+                            "active"
+                        else
+                            ""
+                    )
+                    activeMaybe
 
         arrowClass order =
             case order of
