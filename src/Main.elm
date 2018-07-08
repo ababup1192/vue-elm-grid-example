@@ -163,9 +163,9 @@ view { gridData, activeMaybe, nameOrder, powerOrder, searchQuery } =
             ]
 
 
-flippedComparison : comparable -> comparable -> Basics.Order
-flippedComparison a b =
-    case compare a b of
+flippedComparisonOrder : Basics.Order -> Basics.Order
+flippedComparisonOrder o =
+    case o of
         LT ->
             GT
 
@@ -176,68 +176,49 @@ flippedComparison a b =
             LT
 
 
+flippedComparison : comparable -> comparable -> Basics.Order
+flippedComparison a b =
+    flippedComparisonOrder <| compare a b
+
+
+powerComparison : Number -> Number -> Basics.Order
+powerComparison power power2 =
+    case ( power, power2 ) of
+        ( Infinity, Integer _ ) ->
+            GT
+
+        ( Integer _, Infinity ) ->
+            LT
+
+        ( Integer aa, Integer bb ) ->
+            compare aa bb
+
+        ( _, _ ) ->
+            EQ
+
+
 sortList : Maybe Active -> Order -> Order -> List Data -> List Data
 sortList activeMaybe nameOrder powerOrder gridData =
     case activeMaybe of
         Just act ->
-            case act of
+            (case act of
                 Name ->
                     case nameOrder of
-                        Desc ->
-                            List.sortWith
-                                (\a b ->
-                                    case compare a.name b.name of
-                                        LT ->
-                                            GT
-
-                                        EQ ->
-                                            EQ
-
-                                        GT ->
-                                            LT
-                                )
-                                gridData
-
                         Asc ->
-                            List.sortBy .name gridData
+                            List.sortBy .name
+
+                        Desc ->
+                            List.sortWith (\a b -> flippedComparison a.name b.name)
 
                 Power ->
                     case powerOrder of
-                        Desc ->
-                            List.sortWith
-                                (\a b ->
-                                    case ( a.power, b.power ) of
-                                        ( Infinity, Integer _ ) ->
-                                            LT
-
-                                        ( Integer _, Infinity ) ->
-                                            GT
-
-                                        ( Integer aa, Integer bb ) ->
-                                            flippedComparison aa bb
-
-                                        ( _, _ ) ->
-                                            EQ
-                                )
-                                gridData
-
                         Asc ->
-                            List.sortWith
-                                (\a b ->
-                                    case ( a.power, b.power ) of
-                                        ( Infinity, Integer _ ) ->
-                                            GT
+                            List.sortWith (\a b -> powerComparison a.power b.power)
 
-                                        ( Integer _, Infinity ) ->
-                                            LT
-
-                                        ( Integer aa, Integer bb ) ->
-                                            compare aa bb
-
-                                        ( _, _ ) ->
-                                            EQ
-                                )
-                                gridData
+                        Desc ->
+                            List.sortWith (\a b -> powerComparison a.power b.power |> flippedComparisonOrder)
+            )
+                gridData
 
         Nothing ->
             gridData
