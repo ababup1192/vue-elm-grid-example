@@ -32,12 +32,14 @@ switchOrder order =
             Desc
 
 
+type alias ItemOrder =
+    Maybe ( Active, Order )
+
+
 type alias Model =
     { searchQuery : String
     , gridData : List Data
-    , activeMaybe : Maybe Active
-    , nameOrder : Order
-    , powerOrder : Order
+    , itemOrder : ItemOrder
     }
 
 
@@ -59,9 +61,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { searchQuery = ""
       , gridData = testGridData
-      , activeMaybe = Nothing
-      , nameOrder = Asc
-      , powerOrder = Asc
+      , itemOrder = Nothing
       }
     , Cmd.none
     )
@@ -77,18 +77,18 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ nameOrder, powerOrder } as model) =
+update msg ({ itemOrder } as model) =
     case msg of
         InputSearchQuery q ->
             { model | searchQuery = q } ! []
 
-        SwitchOrder act ->
-            case act of
-                Name ->
-                    { model | nameOrder = switchOrder nameOrder, activeMaybe = Just act } ! []
+        SwitchOrder active ->
+            case itemOrder of
+                Just ( _, order ) ->
+                    { model | itemOrder = Just ( active, switchOrder order ) } ! []
 
-                Power ->
-                    { model | powerOrder = switchOrder powerOrder, activeMaybe = Just act } ! []
+                Nothing ->
+                    { model | itemOrder = Just ( active, switchOrder Asc ) } ! []
 
 
 
@@ -96,7 +96,7 @@ update msg ({ nameOrder, powerOrder } as model) =
 
 
 view : Model -> Html Msg
-view { gridData, activeMaybe, nameOrder, powerOrder, searchQuery } =
+view { gridData, searchQuery, itemOrder } =
     let
         lwQuery =
             String.toLower searchQuery
@@ -108,26 +108,34 @@ view { gridData, activeMaybe, nameOrder, powerOrder, searchQuery } =
                 ]
 
         gridData2trList =
-            List.map data2tr (gridData |> sortList activeMaybe nameOrder powerOrder |> filterList lwQuery)
+            List.map data2tr (gridData |> sortList itemOrder |> filterList lwQuery)
 
         activeClass active =
             Maybe.withDefault "" <|
                 Maybe.map
-                    (\act ->
+                    (\( act, _ ) ->
                         if active == act then
                             "active"
                         else
                             ""
                     )
-                    activeMaybe
+                    itemOrder
 
-        arrowClass order =
-            case order of
-                Asc ->
-                    "arrow asc"
+        arrowClass active =
+            Maybe.withDefault "" <|
+                Maybe.map
+                    (\( act, order ) ->
+                        if active == act then
+                            case order of
+                                Asc ->
+                                    "arrow asc"
 
-                Desc ->
-                    "arrow dsc"
+                                Desc ->
+                                    "arrow dsc"
+                        else
+                            ""
+                    )
+                    itemOrder
     in
         div []
             [ form []
@@ -139,11 +147,11 @@ view { gridData, activeMaybe, nameOrder, powerOrder, searchQuery } =
                     [ tr []
                         [ th [ class <| activeClass Name, onClick <| SwitchOrder Name ]
                             [ text "Name"
-                            , span [ class <| arrowClass nameOrder ] []
+                            , span [ class <| arrowClass Name ] []
                             ]
                         , th [ class <| activeClass Power, onClick <| SwitchOrder Power ]
                             [ text "Power"
-                            , span [ class <| arrowClass powerOrder ] []
+                            , span [ class <| arrowClass Power ] []
                             ]
                         ]
                     ]
@@ -155,15 +163,7 @@ view { gridData, activeMaybe, nameOrder, powerOrder, searchQuery } =
 
 flippedComparison : comparable -> comparable -> Basics.Order
 flippedComparison a b =
-    case compare a b of
-        LT ->
-            GT
-
-        EQ ->
-            EQ
-
-        GT ->
-            LT
+    compare b a
 
 
 orderProduct : Order -> comparable -> comparable -> Basics.Order
@@ -176,16 +176,16 @@ orderProduct order a b =
             flippedComparison a b
 
 
-sortList : Maybe Active -> Order -> Order -> List Data -> List Data
-sortList activeMaybe nameOrder powerOrder gridData =
-    case activeMaybe of
-        Just active ->
+sortList : ItemOrder -> List Data -> List Data
+sortList itemOrder gridData =
+    case itemOrder of
+        Just ( active, order ) ->
             (case active of
                 Name ->
-                    List.sortWith (\a b -> orderProduct nameOrder a.name b.name)
+                    List.sortWith (\a b -> orderProduct order a.name b.name)
 
                 Power ->
-                    List.sortWith (\a b -> orderProduct powerOrder a.power b.power)
+                    List.sortWith (\a b -> orderProduct order a.power b.power)
             )
                 gridData
 
