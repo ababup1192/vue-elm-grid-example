@@ -12,31 +12,31 @@ all : Test
 all =
     describe "Grid layout module Test"
         [ "sort Not Active"
-            => sortList Nothing Asc Asc testGridData
+            => sortList Nothing testGridData
             === testGridData
         , "sort Name asc sort"
-            => sortList (Just Name) Asc Asc testGridData
+            => sortList (Just ( Name, Asc )) testGridData
             === [ Data "Bruce Lee" 9000
                 , Data "Chuck Norris" infinity
                 , Data "Jackie Chan" 7000
                 , Data "Jet Li" 8000
                 ]
         , "sort Name desc sort"
-            => sortList (Just Name) Desc Asc testGridData
+            => sortList (Just ( Name, Desc )) testGridData
             === [ Data "Jet Li" 8000
                 , Data "Jackie Chan" 7000
                 , Data "Chuck Norris" infinity
                 , Data "Bruce Lee" 9000
                 ]
         , "sort Power asc sort"
-            => sortList (Just Power) Asc Asc testGridData
+            => sortList (Just ( Power, Asc )) testGridData
             === [ Data "Jackie Chan" 7000
                 , Data "Jet Li" 8000
                 , Data "Bruce Lee" 9000
                 , Data "Chuck Norris" infinity
                 ]
         , "sort Power desc sort"
-            => sortList (Just Power) Asc Desc testGridData
+            => sortList (Just ( Power, Desc )) testGridData
             === [ Data "Chuck Norris" infinity
                 , Data "Bruce Lee" 9000
                 , Data "Jet Li" 8000
