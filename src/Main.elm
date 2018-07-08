@@ -142,6 +142,20 @@ view { gridData, searchQuery, itemOrder } =
         lwQuery =
             String.toLower searchQuery
 
+        gridData2thList =
+            (columns
+                |> List.map
+                    (\column ->
+                        th
+                            [ class <| activeClass column.key
+                            , onClick <| SwitchOrder column.key
+                            ]
+                            [ text column.header
+                            , span [ class <| arrowClass column.key ] []
+                            ]
+                    )
+            )
+
         data2tr data =
             tr []
                 (columns
@@ -186,23 +200,8 @@ view { gridData, searchQuery, itemOrder } =
                 , input [ onInput InputSearchQuery ] []
                 ]
             , table []
-                [ thead []
-                    [ tr []
-                        (columns
-                            |> List.map
-                                (\column ->
-                                    th
-                                        [ class <| activeClass column.key
-                                        , onClick <| SwitchOrder column.key
-                                        ]
-                                        [ text column.header
-                                        , span [ class <| arrowClass column.key ] []
-                                        ]
-                                )
-                        )
-                    ]
-                , tbody []
-                    gridData2trList
+                [ thead [] [ tr [] gridData2thList ]
+                , tbody [] gridData2trList
                 ]
             ]
 
