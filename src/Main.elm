@@ -82,13 +82,13 @@ update msg ({ itemOrder } as model) =
         InputSearchQuery q ->
             { model | searchQuery = q } ! []
 
-        SwitchOrder active ->
+        SwitchOrder columnKey ->
             case itemOrder of
                 Just ( _, order ) ->
-                    { model | itemOrder = Just ( active, switchOrder order ) } ! []
+                    { model | itemOrder = Just ( columnKey, switchOrder order ) } ! []
 
                 Nothing ->
-                    { model | itemOrder = Just ( active, switchOrder Asc ) } ! []
+                    { model | itemOrder = Just ( columnKey, switchOrder Asc ) } ! []
 
 
 
@@ -110,22 +110,22 @@ view { gridData, searchQuery, itemOrder } =
         gridData2trList =
             List.map data2tr (gridData |> sortList itemOrder |> filterList lwQuery)
 
-        activeClass active =
+        activeClass columnKey =
             Maybe.withDefault "" <|
                 Maybe.map
-                    (\( act, _ ) ->
-                        if active == act then
+                    (\( key, _ ) ->
+                        if columnKey == key then
                             "active"
                         else
                             ""
                     )
                     itemOrder
 
-        arrowClass active =
+        arrowClass columnKey =
             Maybe.withDefault "" <|
                 Maybe.map
-                    (\( act, order ) ->
-                        if active == act then
+                    (\( key, order ) ->
+                        if columnKey == key then
                             case order of
                                 Asc ->
                                     "arrow asc"
@@ -161,11 +161,6 @@ view { gridData, searchQuery, itemOrder } =
             ]
 
 
-flippedComparison : comparable -> comparable -> Basics.Order
-flippedComparison a b =
-    compare b a
-
-
 orderProduct : Order -> comparable -> comparable -> Basics.Order
 orderProduct order a b =
     case order of
@@ -173,14 +168,14 @@ orderProduct order a b =
             compare a b
 
         Desc ->
-            flippedComparison a b
+            compare b a
 
 
 sortList : ItemOrder -> List Data -> List Data
 sortList itemOrder gridData =
     case itemOrder of
-        Just ( active, order ) ->
-            (case active of
+        Just ( columnKey, order ) ->
+            (case columnKey of
                 Name ->
                     List.sortWith (\a b -> orderProduct order a.name b.name)
 
