@@ -8,7 +8,7 @@ import Html.Events exposing (onInput, onClick)
 ---- MODEL ----
 
 
-type Active
+type ColumnKey
     = Name
     | Power
 
@@ -33,7 +33,7 @@ switchOrder order =
 
 
 type alias ItemOrder =
-    Maybe ( Active, Order )
+    Maybe ( ColumnKey, Order )
 
 
 type alias Model =
@@ -73,7 +73,7 @@ init =
 
 type Msg
     = InputSearchQuery String
-    | SwitchOrder Active
+    | SwitchOrder ColumnKey
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

@@ -2,7 +2,7 @@ module Tests exposing (..)
 
 import Test exposing (..)
 import TestExp exposing (..)
-import Main exposing (testGridData, infinity, sortList, filterList, Active(..), Order(..), Data)
+import Main exposing (testGridData, infinity, sortList, filterList, ColumnKey(..), Order(..), Data)
 
 
 --  target modules
