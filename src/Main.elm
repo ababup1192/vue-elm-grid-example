@@ -184,17 +184,17 @@ flippedComparison a b =
 powerComparison : Number -> Number -> Basics.Order
 powerComparison power power2 =
     case ( power, power2 ) of
-        ( Infinity, Integer _ ) ->
-            GT
-
         ( Integer _, Infinity ) ->
             LT
 
+        ( Infinity, Infinity ) ->
+            EQ
+
+        ( Infinity, Integer _ ) ->
+            GT
+
         ( Integer aa, Integer bb ) ->
             compare aa bb
-
-        ( _, _ ) ->
-            EQ
 
 
 sortList : Maybe Active -> Order -> Order -> List Data -> List Data
