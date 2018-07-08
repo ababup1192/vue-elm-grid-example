@@ -110,13 +110,13 @@ view { gridData, activeMaybe, nameOrder, powerOrder, searchQuery } =
         gridData2trList =
             List.map data2tr (gridData |> sortList activeMaybe nameOrder powerOrder |> filterList lwQuery)
 
-        activeClass act =
+        activeClass active =
             case activeMaybe of
                 Nothing ->
                     ""
 
-                Just a ->
-                    if a == act then
+                Just act ->
+                    if active == act then
                         "active"
                     else
                         ""
@@ -169,8 +169,8 @@ flippedComparison a b =
 sortList : Maybe Active -> Order -> Order -> List Data -> List Data
 sortList activeMaybe nameOrder powerOrder gridData =
     case activeMaybe of
-        Just act ->
-            (case act of
+        Just active ->
+            (case active of
                 Name ->
                     case nameOrder of
                         Asc ->
@@ -194,13 +194,13 @@ sortList activeMaybe nameOrder powerOrder gridData =
 
 
 filterList : String -> List Data -> List Data
-filterList lwQuery sortedList =
+filterList lwQuery gridData =
     List.filter
         (\{ name, power } ->
             String.contains lwQuery (String.toLower name)
                 || String.contains lwQuery (String.toLower <| toString power)
         )
-        sortedList
+        gridData
 
 
 
