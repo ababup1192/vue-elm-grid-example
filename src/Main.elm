@@ -98,7 +98,7 @@ update msg ({ itemOrder } as model) =
                     { model | itemOrder = Just ( columnKey, switchOrder order ) } ! []
 
                 Nothing ->
-                    { model | itemOrder = Just ( columnKey, switchOrder Asc ) } ! []
+                    { model | itemOrder = Just ( columnKey, Asc ) } ! []
 
 
 
