@@ -166,26 +166,26 @@ flippedComparison a b =
             LT
 
 
+orderProduct : Order -> comparable -> comparable -> Basics.Order
+orderProduct order a b =
+    case order of
+        Asc ->
+            compare a b
+
+        Desc ->
+            flippedComparison a b
+
+
 sortList : Maybe Active -> Order -> Order -> List Data -> List Data
 sortList activeMaybe nameOrder powerOrder gridData =
     case activeMaybe of
         Just active ->
             (case active of
                 Name ->
-                    case nameOrder of
-                        Asc ->
-                            List.sortBy .name
-
-                        Desc ->
-                            List.sortWith (\a b -> flippedComparison a.name b.name)
+                    List.sortWith (\a b -> orderProduct nameOrder a.name b.name)
 
                 Power ->
-                    case powerOrder of
-                        Asc ->
-                            List.sortBy .power
-
-                        Desc ->
-                            List.sortWith (\a b -> flippedComparison a.power b.power)
+                    List.sortWith (\a b -> orderProduct powerOrder a.power b.power)
             )
                 gridData
 
