@@ -142,16 +142,46 @@ view { gridData, searchQuery, itemOrder } =
         lwQuery =
             String.toLower searchQuery
 
+        activeClass columnKey =
+            Maybe.withDefault [] <|
+                Maybe.map
+                    (\( key, _ ) ->
+                        if columnKey == key then
+                            [ class "active" ]
+                        else
+                            []
+                    )
+                    itemOrder
+
+        arrowClass columnKey =
+            Maybe.withDefault [] <|
+                Maybe.map
+                    (\( key, order ) ->
+                        if columnKey == key then
+                            [ class <| "arrow " ++ order2string order ]
+                        else
+                            []
+                    )
+                    itemOrder
+
         gridData2thList =
             (columns
                 |> List.map
                     (\column ->
                         th
-                            [ class <| activeClass column.key
-                            , onClick <| SwitchOrder column.key
-                            ]
+                            (List.concat
+                                [ [ onClick <| SwitchOrder column.key ]
+                                , activeClass column.key
+                                ]
+                            )
                             [ text column.header
-                            , span [ class <| arrowClass column.key ] []
+                            , span
+                                (List.concat
+                                    [ []
+                                    , arrowClass column.key
+                                    ]
+                                )
+                                []
                             ]
                     )
             )
@@ -171,28 +201,6 @@ view { gridData, searchQuery, itemOrder } =
                     |> sortList columns itemOrder
                     |> filterList columns lwQuery
                 )
-
-        activeClass columnKey =
-            Maybe.withDefault "" <|
-                Maybe.map
-                    (\( key, _ ) ->
-                        if columnKey == key then
-                            "active"
-                        else
-                            ""
-                    )
-                    itemOrder
-
-        arrowClass columnKey =
-            Maybe.withDefault "" <|
-                Maybe.map
-                    (\( key, order ) ->
-                        if columnKey == key then
-                            "arrow " ++ order2string order
-                        else
-                            ""
-                    )
-                    itemOrder
     in
         div []
             [ form []
