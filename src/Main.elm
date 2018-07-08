@@ -56,15 +56,19 @@ type alias Model =
     }
 
 
+testGridData : List Data
+testGridData =
+    [ Data "Chuck Norris" Infinity
+    , Data "Bruce Lee" <| Integer 9000
+    , Data "Jackie Chan" <| Integer 7000
+    , Data "Jet Li" <| Integer 8000
+    ]
+
+
 init : ( Model, Cmd Msg )
 init =
     ( { searchQuery = ""
-      , gridData =
-            [ Data "Chuck Norris" Infinity
-            , Data "Bruce Lee" <| Integer 9000
-            , Data "Jackie Chan" <| Integer 7000
-            , Data "Jet Li" <| Integer 8000
-            ]
+      , gridData = testGridData
       , activeMaybe = Nothing
       , nameOrder = Asc
       , powerOrder = Asc
@@ -172,16 +176,6 @@ flippedComparison a b =
             LT
 
 
-filterList : String -> List Data -> List Data
-filterList lwQuery sortedList =
-    List.filter
-        (\{ name, power } ->
-            String.contains lwQuery (String.toLower name)
-                || String.contains lwQuery (String.toLower <| number2string power)
-        )
-        sortedList
-
-
 sortList : Maybe Active -> Order -> Order -> List Data -> List Data
 sortList activeMaybe nameOrder powerOrder gridData =
     case activeMaybe of
@@ -247,6 +241,16 @@ sortList activeMaybe nameOrder powerOrder gridData =
 
         Nothing ->
             gridData
+
+
+filterList : String -> List Data -> List Data
+filterList lwQuery sortedList =
+    List.filter
+        (\{ name, power } ->
+            String.contains lwQuery (String.toLower name)
+                || String.contains lwQuery (String.toLower <| number2string power)
+        )
+        sortedList
 
 
 
