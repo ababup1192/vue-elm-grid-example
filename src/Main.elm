@@ -8,28 +8,13 @@ import Html.Events exposing (onInput, onClick)
 ---- MODEL ----
 
 
-type Number
-    = Integer Int
-    | Infinity
-
-
 type Active
     = Name
     | Power
 
 
 type alias Data =
-    { name : String, power : Number }
-
-
-number2string : Number -> String
-number2string num =
-    case num of
-        Integer int ->
-            toString int
-
-        Infinity ->
-            "Infinity"
+    { name : String, power : Float }
 
 
 type Order
@@ -56,12 +41,17 @@ type alias Model =
     }
 
 
+infinity : Float
+infinity =
+    1 / 0
+
+
 testGridData : List Data
 testGridData =
-    [ Data "Chuck Norris" Infinity
-    , Data "Bruce Lee" <| Integer 9000
-    , Data "Jackie Chan" <| Integer 7000
-    , Data "Jet Li" <| Integer 8000
+    [ Data "Chuck Norris" infinity
+    , Data "Bruce Lee" 9000
+    , Data "Jackie Chan" 7000
+    , Data "Jet Li" 8000
     ]
 
 
@@ -114,7 +104,7 @@ view { gridData, activeMaybe, nameOrder, powerOrder, searchQuery } =
         data2tr { name, power } =
             tr []
                 [ td [] [ text name ]
-                , td [] [ text <| number2string power ]
+                , td [] [ text <| toString power ]
                 ]
 
         gridData2trList =
@@ -163,9 +153,9 @@ view { gridData, activeMaybe, nameOrder, powerOrder, searchQuery } =
             ]
 
 
-flippedComparisonOrder : Basics.Order -> Basics.Order
-flippedComparisonOrder o =
-    case o of
+flippedComparison : comparable -> comparable -> Basics.Order
+flippedComparison a b =
+    case compare a b of
         LT ->
             GT
 
@@ -174,27 +164,6 @@ flippedComparisonOrder o =
 
         GT ->
             LT
-
-
-flippedComparison : comparable -> comparable -> Basics.Order
-flippedComparison a b =
-    flippedComparisonOrder <| compare a b
-
-
-powerComparison : Number -> Number -> Basics.Order
-powerComparison power power2 =
-    case ( power, power2 ) of
-        ( Integer _, Infinity ) ->
-            LT
-
-        ( Infinity, Infinity ) ->
-            EQ
-
-        ( Infinity, Integer _ ) ->
-            GT
-
-        ( Integer aa, Integer bb ) ->
-            compare aa bb
 
 
 sortList : Maybe Active -> Order -> Order -> List Data -> List Data
@@ -213,10 +182,10 @@ sortList activeMaybe nameOrder powerOrder gridData =
                 Power ->
                     case powerOrder of
                         Asc ->
-                            List.sortWith (\a b -> powerComparison a.power b.power)
+                            List.sortBy .power
 
                         Desc ->
-                            List.sortWith (\a b -> powerComparison a.power b.power |> flippedComparisonOrder)
+                            List.sortWith (\a b -> flippedComparison a.power b.power)
             )
                 gridData
 
@@ -229,7 +198,7 @@ filterList lwQuery sortedList =
     List.filter
         (\{ name, power } ->
             String.contains lwQuery (String.toLower name)
-                || String.contains lwQuery (String.toLower <| number2string power)
+                || String.contains lwQuery (String.toLower <| toString power)
         )
         sortedList
 
