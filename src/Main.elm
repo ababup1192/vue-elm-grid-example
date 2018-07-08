@@ -115,20 +115,12 @@ type alias Column data =
 
 nameCol : Column Data
 nameCol =
-    { key = Name
-    , header = "Name"
-    , cell = .name
-    , sorter = \d1 d2 -> compare d1.name d2.name
-    }
+    Column Name "Name" .name (\d1 d2 -> compare d1.name d2.name)
 
 
 powerCol : Column Data
 powerCol =
-    { key = Power
-    , header = "Power"
-    , cell = .power >> toString
-    , sorter = \d1 d2 -> compare d1.power d2.power
-    }
+    Column Power "Power" (.power >> toString) (\d1 d2 -> compare d1.power d2.power)
 
 
 columns : List (Column Data)
@@ -237,8 +229,7 @@ sortList columns itemOrder gridData =
     case itemOrder of
         Just ( columnKey, order ) ->
             columns
-                |> List.filter (\column -> column.key == columnKey)
-                |> List.head
+                |> find (\column -> column.key == columnKey)
                 |> Maybe.map
                     (\column ->
                         List.sortWith
@@ -262,6 +253,19 @@ filterList columns lwQuery gridData =
                     )
         )
         gridData
+
+
+find : (a -> Bool) -> List a -> Maybe a
+find predicate list =
+    case list of
+        [] ->
+            Nothing
+
+        first :: rest ->
+            if predicate first then
+                Just first
+            else
+                find predicate rest
 
 
 
