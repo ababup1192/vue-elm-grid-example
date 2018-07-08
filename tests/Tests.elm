@@ -1,8 +1,9 @@
 module Tests exposing (..)
 
+import Main exposing (ColumnKey(..), Data, Order(..), columns, filterList, infinity, sortList, testGridData)
 import Test exposing (..)
 import TestExp exposing (..)
-import Main exposing (testGridData, infinity, sortList, filterList, ColumnKey(..), Order(..), Data)
+
 
 
 --  target modules
@@ -12,57 +13,57 @@ all : Test
 all =
     describe "Grid layout module Test"
         [ "sort Not Active"
-            => sortList Nothing testGridData
+            => sortList columns Nothing testGridData
             === testGridData
         , "sort Name asc sort"
-            => sortList (Just ( Name, Asc )) testGridData
+            => sortList columns (Just ( Name, Asc )) testGridData
             === [ Data "Bruce Lee" 9000
                 , Data "Chuck Norris" infinity
                 , Data "Jackie Chan" 7000
                 , Data "Jet Li" 8000
                 ]
         , "sort Name desc sort"
-            => sortList (Just ( Name, Desc )) testGridData
+            => sortList columns (Just ( Name, Desc )) testGridData
             === [ Data "Jet Li" 8000
                 , Data "Jackie Chan" 7000
                 , Data "Chuck Norris" infinity
                 , Data "Bruce Lee" 9000
                 ]
         , "sort Power asc sort"
-            => sortList (Just ( Power, Asc )) testGridData
+            => sortList columns (Just ( Power, Asc )) testGridData
             === [ Data "Jackie Chan" 7000
                 , Data "Jet Li" 8000
                 , Data "Bruce Lee" 9000
                 , Data "Chuck Norris" infinity
                 ]
         , "sort Power desc sort"
-            => sortList (Just ( Power, Desc )) testGridData
+            => sortList columns (Just ( Power, Desc )) testGridData
             === [ Data "Chuck Norris" infinity
                 , Data "Bruce Lee" 9000
                 , Data "Jet Li" 8000
                 , Data "Jackie Chan" 7000
                 ]
         , "filter no query"
-            => filterList "" testGridData
+            => filterList columns "" testGridData
             === testGridData
         , "filter j"
-            => filterList "j" testGridData
+            => filterList columns "j" testGridData
             === [ Data "Jackie Chan" 7000
                 , Data "Jet Li" 8000
                 ]
         , "filter i"
-            => filterList "i" testGridData
+            => filterList columns "i" testGridData
             === [ Data "Chuck Norris" infinity
                 , Data "Jackie Chan" 7000
                 , Data "Jet Li" 8000
                 ]
         , "filter in"
-            => filterList "in" testGridData
+            => filterList columns "in" testGridData
             === [ Data "Chuck Norris" infinity ]
         , "filter 70"
-            => filterList "70" testGridData
+            => filterList columns "70" testGridData
             === [ Data "Jackie Chan" 7000 ]
         , "filter qawsderftgy"
-            => filterList "qawsderftgy" testGridData
+            => filterList columns "qawsderftgy" testGridData
             === []
         ]

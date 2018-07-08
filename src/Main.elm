@@ -1,8 +1,9 @@
 module Main exposing (..)
 
-import Html exposing (Html, text, div, table, thead, tbody, span, tr, th, td, input, form)
-import Html.Attributes exposing (src, class)
-import Html.Events exposing (onInput, onClick)
+import Html exposing (Html, div, form, input, span, table, tbody, td, text, th, thead, tr)
+import Html.Attributes exposing (class, src)
+import Html.Events exposing (onClick, onInput)
+
 
 
 ---- MODEL ----
@@ -105,20 +106,58 @@ update msg ({ itemOrder } as model) =
 ---- VIEW ----
 
 
+type alias Column data =
+    { key : ColumnKey
+    , header : String
+    , cell : data -> String
+    , sorter : data -> data -> Basics.Order
+    }
+
+
+nameCol : Column Data
+nameCol =
+    { key = Name
+    , header = "Name"
+    , cell = .name
+    , sorter = \d1 d2 -> compare d1.name d2.name
+    }
+
+
+powerCol : Column Data
+powerCol =
+    { key = Power
+    , header = "Power"
+    , cell = .power >> toString
+    , sorter = \d1 d2 -> compare d1.power d2.power
+    }
+
+
+columns : List (Column Data)
+columns =
+    [ nameCol, powerCol ]
+
+
 view : Model -> Html Msg
 view { gridData, searchQuery, itemOrder } =
     let
         lwQuery =
             String.toLower searchQuery
 
-        data2tr { name, power } =
+        data2tr data =
             tr []
-                [ td [] [ text name ]
-                , td [] [ text <| toString power ]
-                ]
+                (columns
+                    |> List.map
+                        (\column ->
+                            td [] [ text (column.cell data) ]
+                        )
+                )
 
         gridData2trList =
-            List.map data2tr (gridData |> sortList itemOrder |> filterList lwQuery)
+            List.map data2tr
+                (gridData
+                    |> sortList columns itemOrder
+                    |> filterList columns lwQuery
+                )
 
         activeClass columnKey =
             Maybe.withDefault "" <|
@@ -126,6 +165,7 @@ view { gridData, searchQuery, itemOrder } =
                     (\( key, _ ) ->
                         if columnKey == key then
                             "active"
+
                         else
                             ""
                     )
@@ -137,68 +177,85 @@ view { gridData, searchQuery, itemOrder } =
                     (\( key, order ) ->
                         if columnKey == key then
                             "arrow " ++ order2string order
+
                         else
                             ""
                     )
                     itemOrder
     in
-        div []
-            [ form []
-                [ text "Search"
-                , input [ onInput InputSearchQuery ] []
-                ]
-            , table []
-                [ thead []
-                    [ tr []
-                        [ th [ class <| activeClass Name, onClick <| SwitchOrder Name ]
-                            [ text "Name"
-                            , span [ class <| arrowClass Name ] []
-                            ]
-                        , th [ class <| activeClass Power, onClick <| SwitchOrder Power ]
-                            [ text "Power"
-                            , span [ class <| arrowClass Power ] []
-                            ]
-                        ]
-                    ]
-                , tbody []
-                    gridData2trList
-                ]
+    div []
+        [ form []
+            [ text "Search"
+            , input [ onInput InputSearchQuery ] []
             ]
+        , table []
+            [ thead []
+                [ tr []
+                    (columns
+                        |> List.map
+                            (\column ->
+                                th
+                                    [ class <| activeClass column.key
+                                    , onClick <| SwitchOrder column.key
+                                    ]
+                                    [ text column.header
+                                    , span [ class <| arrowClass column.key ] []
+                                    ]
+                            )
+                    )
+                ]
+            , tbody []
+                gridData2trList
+            ]
+        ]
 
 
-orderProduct : Order -> comparable -> comparable -> Basics.Order
-orderProduct order a b =
+orderProduct : Order -> Basics.Order -> Basics.Order
+orderProduct order o =
     case order of
         Asc ->
-            compare a b
+            o
 
         Desc ->
-            compare b a
+            case o of
+                LT ->
+                    GT
+
+                EQ ->
+                    EQ
+
+                GT ->
+                    LT
 
 
-sortList : ItemOrder -> List Data -> List Data
-sortList itemOrder gridData =
+sortList : List (Column data) -> ItemOrder -> List data -> List data
+sortList columns itemOrder gridData =
     case itemOrder of
         Just ( columnKey, order ) ->
-            (case columnKey of
-                Name ->
-                    List.sortWith (\a b -> orderProduct order a.name b.name)
-
-                Power ->
-                    List.sortWith (\a b -> orderProduct order a.power b.power)
-            )
-                gridData
+            columns
+                |> List.filter (\column -> column.key == columnKey)
+                |> List.head
+                |> Maybe.map
+                    (\column ->
+                        List.sortWith
+                            (\a b -> orderProduct order (column.sorter a b))
+                            gridData
+                    )
+                |> Maybe.withDefault gridData
 
         Nothing ->
             gridData
 
 
-filterList : String -> List Data -> List Data
-filterList lwQuery gridData =
+filterList : List (Column data) -> String -> List data -> List data
+filterList columns lwQuery gridData =
     List.filter
-        (\{ name, power } ->
-            String.contains lwQuery (String.toLower name)
-                || String.contains lwQuery (String.toLower <| toString power)
+        (\data ->
+            columns
+                |> List.any
+                    (\column ->
+                        String.contains lwQuery (String.toLower (column.cell data))
+                    )
         )
         gridData
 
