@@ -5,6 +5,7 @@ import Html.Attributes exposing (class, src)
 import Html.Events exposing (onClick, onInput)
 
 
+
 ---- MODEL ----
 
 
@@ -113,6 +114,13 @@ type alias Column data =
     }
 
 
+type alias Options data msg =
+    { handleInputSearchQuery : String -> msg
+    , handleSwitchOrder : ColumnKey -> msg
+    , columns : List (Column data)
+    }
+
+
 nameCol : Column Data
 nameCol =
     Column Name "Name" .name (\d1 d2 -> compare d1.name d2.name)
@@ -130,6 +138,23 @@ columns =
 
 view : Model -> Html Msg
 view { gridData, searchQuery, itemOrder } =
+    viewHelp
+        { handleInputSearchQuery = InputSearchQuery
+        , handleSwitchOrder = SwitchOrder
+        , columns = columns
+        }
+        searchQuery
+        itemOrder
+        gridData
+
+
+viewHelp :
+    Options data msg
+    -> String
+    -> Maybe ( ColumnKey, Order )
+    -> List data
+    -> Html msg
+viewHelp { handleInputSearchQuery, handleSwitchOrder, columns } searchQuery itemOrder gridData =
     let
         lwQuery =
             String.toLower searchQuery
@@ -140,6 +165,7 @@ view { gridData, searchQuery, itemOrder } =
                     (\( key, _ ) ->
                         if columnKey == key then
                             [ class "active" ]
+
                         else
                             []
                     )
@@ -151,18 +177,19 @@ view { gridData, searchQuery, itemOrder } =
                     (\( key, order ) ->
                         if columnKey == key then
                             [ class <| "arrow " ++ order2string order ]
+
                         else
                             []
                     )
                     itemOrder
 
         gridData2thList =
-            (columns
+            columns
                 |> List.map
                     (\column ->
                         th
                             (List.concat
-                                [ [ onClick <| SwitchOrder column.key ]
+                                [ [ onClick <| handleSwitchOrder column.key ]
                                 , activeClass column.key
                                 ]
                             )
@@ -176,7 +203,6 @@ view { gridData, searchQuery, itemOrder } =
                                 []
                             ]
                     )
-            )
 
         data2tr data =
             tr []
@@ -194,16 +220,16 @@ view { gridData, searchQuery, itemOrder } =
                     |> filterList columns lwQuery
                 )
     in
-        div []
-            [ form []
-                [ text "Search"
-                , input [ onInput InputSearchQuery ] []
-                ]
-            , table []
-                [ thead [] [ tr [] gridData2thList ]
-                , tbody [] gridData2trList
-                ]
+    div []
+        [ form []
+            [ text "Search"
+            , input [ onInput handleInputSearchQuery ] []
             ]
+        , table []
+            [ thead [] [ tr [] gridData2thList ]
+            , tbody [] gridData2trList
+            ]
+        ]
 
 
 orderProduct : Order -> Basics.Order -> Basics.Order
@@ -264,6 +290,7 @@ find predicate list =
         first :: rest ->
             if predicate first then
                 Just first
+
             else
                 find predicate rest
 
